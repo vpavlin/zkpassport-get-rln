@@ -1,0 +1,32 @@
+---
+version: "2.0"
+services:
+  prompt-play:
+    image: >-
+      quay.io/vpavlin0/zkpassport-rln@sha256:03150a00e17c2d25d305a31d22be3e38b4ffcfd8575cd901f69b338be74addda
+    expose:
+      - port: 80
+        as: 80
+        to:
+          - global: true
+profiles:
+  compute:
+    prompt-play:
+      resources:
+        cpu:
+          units: 0.1
+        memory:
+          size: 512Mi
+        storage:
+          - size: 300mi
+  placement:
+    dcloud:
+      pricing:
+        prompt-play:
+          denom: uakt
+          amount: 10000
+deployment:
+  prompt-play:
+    dcloud:
+      profile: prompt-play
+      count: 1
