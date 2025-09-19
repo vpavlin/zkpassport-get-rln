@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "preinstall": "cd packages/lib/ && npm install && npm run build",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -22,7 +23,9 @@
     "react-dom": "19.1.0",
     "react-qr-code": "^2.0.18",
     "viem": "^2.37.4",
-    "waku-dispatcher": "^0.0.29"
+    "waku-dispatcher": "^0.0.29",
+    "getrlnlib": "./packages/lib"
+
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

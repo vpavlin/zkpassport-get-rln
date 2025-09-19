@@ -20,12 +20,12 @@ export async function getInstance(status: (message: string) => void): Promise<Di
             // Initialize dispatcher with all required parameters
             dispatcher = new Dispatcher(node, contentTopic, false, store);
             await dispatcher.initContentTopic(contentTopic);
-            dispatcher.on('mint_response', async (message) => {
+            dispatcher.on('register_response', async (message) => {
                 console.log("Received mint_response:", message);
                 if (message.success) {
-                    status("Tokens minted in transaction: " + message.hash);
+                    status("RLN registered in TX: " + message.hash);
                 } else {
-                    status("Minting failed: " + message.error);
+                    status("RLN registration failed: " + message.error);
                 }
 
             }, false, false, undefined, false);

@@ -58,8 +58,14 @@ contract UniqueIdentifier {
     // Mapping to store unique identifiers
     mapping(bytes32 => bool) private identifiers;
     
+    // Array to keep track of used identifiers for reset functionality
+    bytes32[] private usedIdentifiers;
+    
     // Event emitted when a new identifier is registered
     event IdentifierRegistered(bytes32 indexed identifier);
+    
+    // Event emitted when all identifiers are reset
+    event IdentifiersReset(address indexed resetter);
         
     /**
      * @dev Register a new unique identifier
@@ -74,6 +80,9 @@ contract UniqueIdentifier {
         
         // Register the new identifier
         identifiers[uniqueIdentifier] = true;
+        
+        // Track the used identifier for reset functionality
+        usedIdentifiers.push(uniqueIdentifier);
 
         // Register in RLN with a rate limit of 10 and no commitments to erase
         rln.register(idCommitment, rateLimit, new uint256[](0));
@@ -113,5 +122,22 @@ contract UniqueIdentifier {
     function setRLNAddress(RLN _newRLN) public onlyOwner {
         require(address(_newRLN) != address(0), "RLN address cannot be zero");
         rln = _newRLN;
+    }
+
+    /**
+     * @dev Reset all identifiers (for development and testing purposes)
+     * Only callable by the owner
+     */
+    function reset() public onlyOwner {
+        // Reset all stored identifiers
+        for (uint256 i = 0; i < usedIdentifiers.length; i++) {
+            identifiers[usedIdentifiers[i]] = false;
+        }
+        
+        // Clear the array of used identifiers
+        delete usedIdentifiers;
+        
+        // Emit event
+        emit IdentifiersReset(msg.sender);
     }
 }

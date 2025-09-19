@@ -1,9 +1,10 @@
-import { ZKPassport } from "@zkpassport/sdk";
-import { createWalletClient, createPublicClient, http, parseAbi } from "viem";
+import { SolidityVerifierParameters, ZKPassport } from "@zkpassport/sdk";
+import { VERIFIER_CONTRACT_ADDRESS } from "./constants";
+import { createWalletClient, createPublicClient, http } from "viem";
 import { sepolia } from "viem/chains";
 import { custom } from "viem";
 
-export async function verifyOnChain(proofResult: any, isIDCard: any) {
+export async function getVerifierParams(proofResult: any):Promise<SolidityVerifierParameters> {
   const zkPassport = new ZKPassport();
 
   // Validate proofResult
@@ -22,29 +23,43 @@ export async function verifyOnChain(proofResult: any, isIDCard: any) {
     // Use the same scope as the one you specified with the request function
     scope: "personhood",
     // Enable dev mode if you want to use mock passports, otherwise keep it false
-    devMode: false,
+    devMode: true,
   });
+
+  return verifierParams;
+
+}
+
+export async function verifyOnChain(proofResult: any, idCommitment: string) {
+  const verifierParams = await getVerifierParams(proofResult);
 
  // @ts-ignore
-  if (!window || !window.ethereum) {
-    throw new Error("No Ethereum provider found. Please install MetaMask.");
-  }
-  const walletClient = createWalletClient({
-    chain: sepolia,
-    // @ts-ignore
-    transport: custom(window.ethereum!)
-  })
+ if (!window || !window.ethereum) {
+   throw new Error("No Ethereum provider found. Please install MetaMask.");
+ }
+ const walletClient = createWalletClient({
+   chain: sepolia,
+   // @ts-ignore
+   transport: custom(window.ethereum!)
+ })
 
-  // Get the account
-  const [account] = await walletClient.getAddresses();
+ // Get the account
+ const [account] = await walletClient.getAddresses();
 
-  // Create a public client
-  const publicClient = createPublicClient({
-    chain: sepolia,
-    transport: http(),
-  });
+ // Create a public client for transaction confirmation
+ const publicClient = createPublicClient({
+   chain: sepolia,
+   transport: http(),
+ });
 
-  const abi = [ {
+
+ 
+ if (!idCommitment) {
+   throw new Error("idCommitment not provided");
+ }
+
+  const abi = [
+    {
       "inputs": [
         {
           "components": [
@@ -113,15 +128,35 @@ export async function verifyOnChain(proofResult: any, isIDCard: any) {
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
-    }]
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "identifier",
+          "type": "bytes32"
+        }
+      ],
+      "name": "checkIdentifier",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];
 
-  const args = [verifierParams, BigInt(2), 100];
+  const args = [verifierParams, BigInt(idCommitment), 100];
   console.log(args);
 
 
   // Call your contract with the verification parameters
   const hash = await walletClient.writeContract({
-    address: "0xA6284113f2573a7463C335Abb2053E3BbA09F944",
+    address: VERIFIER_CONTRACT_ADDRESS,
     abi: abi,
     functionName: "registerIdentifier",
     args: args,
@@ -132,4 +167,5 @@ export async function verifyOnChain(proofResult: any, isIDCard: any) {
   await publicClient.waitForTransactionReceipt({ hash });
 
   console.log("Verification completed on-chain!", hash);
+  return hash;
 }

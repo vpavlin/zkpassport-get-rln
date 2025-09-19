@@ -90,4 +90,37 @@ describe("UniqueIdentifier", function () {
       expect(results[2]).to.equal(false);
     });
   });
+    describe("Reset Functionality", function () {
+        it("Should allow owner to reset all identifiers", async function () {
+            // Register an identifier first
+            await uniqueIdentifier.registerIdentifier(mockProofVerificationParams);
+            
+            // Verify identifier exists
+            const identifier = mockProofVerificationParams.publicInputs[0];
+            expect(await uniqueIdentifier.checkIdentifier(identifier)).to.equal(true);
+            
+            // Reset all identifiers
+            const tx = await uniqueIdentifier.reset();
+            await tx.wait();
+            
+            // Verify identifier no longer exists
+            expect(await uniqueIdentifier.checkIdentifier(identifier)).to.equal(false);
+        });
+        
+        it("Should emit IdentifiersReset event when reset is called", async function () {
+            // Register an identifier first
+            await uniqueIdentifier.registerIdentifier(mockProofVerificationParams);
+            
+            // Reset and check for event
+            await expect(uniqueIdentifier.reset())
+                .to.emit(uniqueIdentifier, "IdentifiersReset")
+                .withArgs(owner.address);
+        });
+        
+        it("Should only allow owner to call reset", async function () {
+            // Try to call reset from non-owner account
+            await expect(uniqueIdentifier.connect(addr1).reset())
+                .to.be.revertedWith("Caller is not the owner");
+        });
+    });
 });

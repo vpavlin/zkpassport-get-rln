@@ -87,7 +87,7 @@ export default function WalletDetails({ address }: WalletDetailsProps) {
   const formattedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
   return (
-    <div className="bg-gray-100 p-4 rounded-lg mt-4">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md mt-4 border border-gray-200 dark:border-gray-700">
       <h3 className="text-lg font-semibold mb-2">Wallet Details</h3>
       <div className="space-y-2">
         <div>

@@ -89,10 +89,10 @@ export default function WalletConnectButton({ onConnect }: { onConnect: (address
   return (
     <div>
       <button
-        onClick={connectWallet}
-        disabled={connecting}
-        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-2 px-4 rounded flex items-center"
-      >
+              onClick={connectWallet}
+              disabled={connecting}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-2 px-4 rounded flex items-center shadow-md hover:shadow-lg transition-shadow"
+            >
         {connecting ? 'Connecting...' : 'Connect Wallet'}
       </button>
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
